@@ -160,7 +160,7 @@ namespace LinkeD365.FlowToVisio
             Props.Add(XElement.Parse("<Row N='ActionName'> <Cell N='Value' V='" + PropertyName + "' U='STR'/></Row>"));
             Props.Add(XElement.Parse("<Row N='ActionType'> <Cell N='Value' V='HTTP Response' U='STR'/></Row>"));
             var sb = new StringBuilder("Status Code: ");
-            sb.AppendLine((property.Value["inputs"] as JObject)["statusCode"].ToString());
+            sb.AppendLine(property.Value["inputs"]?["statusCode"]?.ToString() ?? "200");
             // sb.AppendLine("URI: " + (property.Value["inputs"] as JObject)["uri"].ToString());
 
             if (property.Value["inputs"]["headers"] != null)
@@ -172,7 +172,10 @@ namespace LinkeD365.FlowToVisio
             if (property.Value["inputs"]["body"] != null)
             {
                 sb.AppendLine("Body:");
-                foreach (var header in property.Value["inputs"]["body"] as JObject) sb.AppendLine(header.Key + " : " + header.Value);
+                if (property.Value["inputs"]["body"] is JObject body)
+                    foreach (var header in body) sb.AppendLine(header.Key + " : " + header.Value);
+                else
+                    sb.AppendLine(property.Value["inputs"]["body"].ToString());
             }
 
             AddText(sb);
@@ -444,20 +447,22 @@ namespace LinkeD365.FlowToVisio
         private Dictionary<string, string> runAs = new Dictionary<string, string>
             {{"1", "Triggering User"}, {"2", "Record Owner"}, {"3", "Process Owner"}};
 
+        private static string Lookup(Dictionary<string, string> values, JToken key) =>
+            key != null && values.TryGetValue(key.ToString(), out var value) ? value : key?.ToString() ?? string.Empty;
+
         public CDSTriggerAction(JProperty property, Action parent, int current, int children) : base(property, parent, current, children, "CDS")
         {
             AddName();
             AddType("CDS Trigger");
             var sb = new StringBuilder("Trigger Condition: ");
-            sb.Append(conditions.First(kvp => kvp.Key == Property.Value["inputs"]["parameters"]["subscriptionRequest/message"].ToString()).Value);
+            sb.Append(Lookup(conditions, Property.Value["inputs"]["parameters"]["subscriptionRequest/message"]));
             sb.AppendLine(" Entity: " + Property.Value["inputs"]["parameters"]["subscriptionRequest/entityname"]);
             sb.AppendLine("Scope: " +
-                          conditions.First(kvp => kvp.Key == Property.Value["inputs"]["parameters"]["subscriptionRequest/scope"].ToString()).Value);
+                          Lookup(scope, Property.Value["inputs"]["parameters"]["subscriptionRequest/scope"]));
 
             if (Property.Value["inputs"]?["parameters"]?["subscriptionRequest/runas"] != null)
                 sb.AppendLine("Run As: " +
-                              conditions.First(kvp => kvp.Key == Property.Value["inputs"]["parameters"]["subscriptionRequest/runas"].ToString())
-                                  .Value);
+                              Lookup(runAs, Property.Value["inputs"]["parameters"]["subscriptionRequest/runas"]));
             if (Property.Value["inputs"]?["parameters"]?["subscriptionRequest/filteringattributes"] != null)
                 sb.AppendLine("Only These attributes: " + Property.Value["inputs"]["parameters"]["subscriptionRequest/filteringattributes"]);
             if (Property.Value["inputs"]?["parameters"]?["subscriptionRequest/filterexpression"] != null)

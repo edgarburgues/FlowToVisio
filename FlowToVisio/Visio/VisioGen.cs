@@ -37,8 +37,8 @@ namespace LinkeD365.FlowToVisio
 
             var triggerShape = Utils.AddAction(triggerProperty, null, 0, 1);
             Utils.AddComment(triggerShape);
-            if (flowObject["properties"]["definition"]["actions"].Children<JProperty>().Where(a => !a.Value["runAfter"].HasValues).Any())
-                Utils.AddActions(flowObject["properties"]["definition"]["actions"].Children<JProperty>().Where(a => !a.Value["runAfter"].HasValues), triggerShape);
+            if (flowObject["properties"]["definition"]["actions"].Children<JProperty>().Where(a => !Utils.HasRunAfter(a.Value)).Any())
+                Utils.AddActions(flowObject["properties"]["definition"]["actions"].Children<JProperty>().Where(a => !Utils.HasRunAfter(a.Value)), triggerShape);
 
             foreach (var shapeName in Utils.VisioTemplates)
                 triggerShape.GetTemplateShape(shapeName).Remove();

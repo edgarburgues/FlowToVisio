@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Command line host for the FlowToVisio diagram engine: same shapes and layout as the XrmToolBox tool,
+       without XrmToolBox, a connection or telemetry. Reads flow definitions from JSON files. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>LinkeD365.FlowToVisio</RootNamespace>
+    <AssemblyName>FlowToVisio.Cli</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RollForward>Major</RollForward>
+    <DefineConstants>$(DefineConstants);CLI</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
+  </ItemGroup>
+
+  <!-- The diagram engine is shared with the plugin, not copied -->
+  <ItemGroup>
+    <Compile Include="..\FlowToVisio\Visio\Action.cs" Link="Engine\Action.cs" />
+    <Compile Include="..\FlowToVisio\Visio\BaseShape.cs" Link="Engine\BaseShape.cs" />
+    <Compile Include="..\FlowToVisio\Visio\CaseAction.cs" Link="Engine\CaseAction.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ConditionAction.cs" Link="Engine\ConditionAction.cs" />
+    <Compile Include="..\FlowToVisio\Visio\Connection.cs" Link="Engine\Connection.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ShapeXML.Conditions.cs" Link="Engine\ShapeXML.Conditions.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ShapeXml.DataOps.cs" Link="Engine\ShapeXml.DataOps.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ShapeXml.SharePoint.cs" Link="Engine\ShapeXml.SharePoint.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ShapeXml.Template.cs" Link="Engine\ShapeXml.Template.cs" />
+    <Compile Include="..\FlowToVisio\Visio\ShapeXml.cs" Link="Engine\ShapeXml.cs" />
+    <Compile Include="..\FlowToVisio\Visio\Utils.cs" Link="Engine\Utils.cs" />
+    <Compile Include="..\FlowToVisio\Classes\Display.cs" Link="Engine\Display.cs" />
+    <EmbeddedResource Include="..\FlowToVisio\Resources\VisioTemplate.vsdx" LogicalName="VisioTemplate.vsdx" />
+    <EmbeddedResource Include="..\actions.json" LogicalName="actions.json" />
+  </ItemGroup>
+
+</Project>

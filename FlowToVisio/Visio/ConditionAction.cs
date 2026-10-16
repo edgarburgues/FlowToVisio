@@ -19,8 +19,8 @@ namespace LinkeD365.FlowToVisio
                 var childAction = Utils.AddAction(actionProperty, parent, ++curCount, childCount);
                 FinalActions[finalNo] = childAction.EndAction;
 
-                if (actionProperty.Parent != null && actionProperty.Parent.Children<JProperty>().Any(el => el.Value["runAfter"].HasValues && ((JProperty)el.Value["runAfter"].First()).Name == childAction.Name))
-                    AddChildActions(actionProperty.Parent.Children<JProperty>().Where(el => el.Value["runAfter"].HasValues && ((JProperty)el.Value["runAfter"].First()).Name == childAction.Name), childAction, finalNo);
+                if (actionProperty.Parent != null && actionProperty.Parent.Children<JProperty>().Any(el => Utils.RunsAfter(el.Value, childAction.Name)))
+                    AddChildActions(actionProperty.Parent.Children<JProperty>().Where(el => Utils.RunsAfter(el.Value, childAction.Name)), childAction, finalNo);
             }
         }
     }

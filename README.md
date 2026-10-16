@@ -6,6 +6,10 @@ Tool available via [XrmToolBox](https://www.xrmtoolbox.com/plugins/LinkeD365.Flo
 
 [Limitations](Limitations.md)
 
+## Command line
+
+This fork adds a command line version of the tool (no XrmToolBox, no connection, no telemetry) that draws flow definitions saved as JSON into a Visio file: see [FlowToVisio.Cli](FlowToVisio.Cli/README.md).
+
 ## Solution Flows
 
 Open Tool

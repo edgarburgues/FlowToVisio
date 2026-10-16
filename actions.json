@@ -1968,83 +1968,200 @@
         "TeamsId": { "value": "inputs|parameters|teamId" },
         "Member": { "value": "inputs|parameters|body/userId" },
         "Add As Owner": { "value": "inputs|parameters|body/owner" }
-      },
-      "Create Teams Meeting": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "CreateTeamsMeeting",
-        "display": {
-          "CalendarId": { "value": "inputs|parameters|calendarid" },
-          "Subject": { "value": "inputs|parameters|item/subject" },
-          "Body": { "value": "inputs|parameters|item/body/content" },
-          "Timezone": { "value": "inputs|parameters|item/timeZone" },
-          "Start Time": { "value": "inputs|parameters|item/start/dateTime" },
-          "End Time": { "value": "inputs|parameters|item/end/dateTime" },
-          "Required Attendees": { "value": "inputs|parameters|item/requiredAttendees" },
-          "Optional Attendees": { "value": "inputs|parameters|item/optionalAttendees" },
-          "Values": {
-            "value": "inputs|parameters|item/",
-            "parameter": true
-          }
+      }
+    },
+    "Create Teams Meeting": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "CreateTeamsMeeting",
+      "display": {
+        "CalendarId": { "value": "inputs|parameters|calendarid" },
+        "Subject": { "value": "inputs|parameters|item/subject" },
+        "Body": { "value": "inputs|parameters|item/body/content" },
+        "Timezone": { "value": "inputs|parameters|item/timeZone" },
+        "Start Time": { "value": "inputs|parameters|item/start/dateTime" },
+        "End Time": { "value": "inputs|parameters|item/end/dateTime" },
+        "Required Attendees": { "value": "inputs|parameters|item/requiredAttendees" },
+        "Optional Attendees": { "value": "inputs|parameters|item/optionalAttendees" },
+        "Values": {
+          "value": "inputs|parameters|item/",
+          "parameter": true
         }
-      },
-      "Create a Chat": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "CreateChat",
-        "display": {
-          "Members": { "value": "inputs|parameters|item/members" },
-          "Title": { "value": "inputs|parameters|item/topic" }
-        }
-      },
-      "Create a Team": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "CreateATeam",
-        "display": {
-          "Display Name": { "value": "inputs|parameters|body/displayName" },
-          "Desciption": { "value": "inputs|parameters|body/description" },
-          "Visibility": { "value": "inputs|parameters|body/visibility" }
-        }
-      },
-      "Get Message": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "GetMessageDetails",
-        "display": {
-          "Message Id": { "value": "inputs|parameters|messageId" },
-          "Thread Type": { "value": "inputs|parameters|threadType" },
-          "Group": { "value": "inputs|parameters|recipient/groupId" },
-          "Channel": { "value": "inputs|parameters|body/recipient/channelId" },
-          "Visibility": { "value": "inputs|parameters|body/recipient/visibility" },
-          "Parent Message Id": { "value": "inputs|parameters|body/recipient/parentMessageId" },
-          "Recipient": { "value": "inputs|parameters|recipient" }
+      }
+    },
+    "Create a Chat": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "CreateChat",
+      "display": {
+        "Members": { "value": "inputs|parameters|item/members" },
+        "Title": { "value": "inputs|parameters|item/topic" }
+      }
+    },
+    "Create a Team": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "CreateATeam",
+      "display": {
+        "Display Name": { "value": "inputs|parameters|body/displayName" },
+        "Desciption": { "value": "inputs|parameters|body/description" },
+        "Visibility": { "value": "inputs|parameters|body/visibility" }
+      }
+    },
+    "Get Message": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "GetMessageDetails",
+      "display": {
+        "Message Id": { "value": "inputs|parameters|messageId" },
+        "Thread Type": { "value": "inputs|parameters|threadType" },
+        "Group": { "value": "inputs|parameters|recipient/groupId" },
+        "Channel": { "value": "inputs|parameters|body/recipient/channelId" },
+        "Visibility": { "value": "inputs|parameters|body/recipient/visibility" },
+        "Parent Message Id": { "value": "inputs|parameters|body/recipient/parentMessageId" },
+        "Recipient": { "value": "inputs|parameters|recipient" }
 
+      }
+    },
+    "Get messages": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "GetMessagesFromChannel",
+      "display": {
+        "Group": { "value": "inputs|parameters|groupId" },
+        "Channel": { "value": "inputs|parameters|channelId" }
+      }
+    },
+    "List members": {
+      "type": "OpenApiConnection",
+      "visioShape": "Teams",
+      "connectionName": "shared_teams",
+      "operationId": "ListMembers",
+      "display": {
+        "Thread Type": { "value": "inputs|parameters|threadType" },
+        "Recipient": { "value": "inputs|parameters|body/recipient" }
+      }
+    },
+    "Delay": {
+      "type": "Wait",
+      "visioShape": "Time",
+      "display": {
+        "Count": { "value": "inputs|interval|count" },
+        "Unit": { "value": "inputs|interval|unit" },
+        "Until": { "value": "inputs|until|timestamp" }
+      }
+    },
+    "Decrement Variable": {
+      "type": "DecrementVariable",
+      "visioShape": "VariableAction",
+      "display": {
+        "Variable": { "value": "inputs|name" },
+        "Value": { "value": "inputs|value" }
+      }
+    },
+    "When an agent calls the flow": {
+      "type": "Request",
+      "kind": "Skills",
+      "visioShape": "Flow",
+      "repeat": [
+        {
+          "title": "Parameters",
+          "path": "inputs|schema|properties",
+          "filter": "x-ms-content-hint|x-ms-dynamically-added"
         }
-      },
-      "Get messages": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "GetMessagesFromChannel",
-        "display": {
-          "Group": { "value": "inputs|parameters|groupId" },
-          "Channel": { "value": "inputs|parameters|channelId" }
+      ]
+    },
+    "Delete a row": {
+      "type": "OpenApiConnection",
+      "visioShape": "CDS",
+      "connectionName": "shared_commondataserviceforapps",
+      "operationId": "DeleteRecord",
+      "display": {
+        "Table": { "value": "inputs|parameters|entityName" },
+        "RowId": { "value": "inputs|parameters|recordId" }
+      }
+    },
+    "Update a row (only if it exists)": {
+      "type": "OpenApiConnection",
+      "visioShape": "CDS",
+      "connectionName": "shared_commondataserviceforapps",
+      "operationId": "UpdateOnlyRecord",
+      "display": {
+        "Table": { "value": "inputs|parameters|entityName" },
+        "RowId": { "value": "inputs|parameters|recordId" },
+        "Row Values": {
+          "value": "inputs|parameters|item/",
+          "parameter": true
         }
-      },
-      "List members": {
-        "type": "OpenApiConnection",
-        "visioShape": "Teams",
-        "connectionName": "shared_teams",
-        "operationId": "ListMembers",
-        "display": {
-          "Thread Type": { "value": "inputs|parameters|threadType" },
-          "Recipient": { "value": "inputs|parameters|body/recipient" }
-        }
+      }
+    },
+    "Download a file or an image": {
+      "type": "OpenApiConnection",
+      "visioShape": "CDS",
+      "connectionName": "shared_commondataserviceforapps",
+      "operationId": "GetEntityFileImageFieldContent",
+      "display": {
+        "Table": { "value": "inputs|parameters|entityName" },
+        "RowId": { "value": "inputs|parameters|recordId" },
+        "Column": { "value": "inputs|parameters|fileImageFieldName" }
+      }
+    },
+    "When an action is performed": {
+      "type": "OpenApiConnectionWebhook",
+      "visioShape": "CDS",
+      "connectionName": "shared_commondataserviceforapps",
+      "operationId": "BusinessEventsTrigger",
+      "display": {
+        "Catalog": { "value": "inputs|parameters|catalog" },
+        "Category": { "value": "inputs|parameters|category" },
+        "Table": { "value": "inputs|parameters|subscriptionRequest/entityname" },
+        "Action": { "value": "inputs|parameters|subscriptionRequest/sdkmessagename" }
+      }
+    },
+    "Send an email from a shared mailbox": {
+      "type": "OpenApiConnection",
+      "visioShape": "Outlook",
+      "connectionName": "shared_office365",
+      "operationId": "SharedMailboxSendEmailV2",
+      "display": {
+        "Mailbox": { "value": "inputs|parameters|emailMessage/MailboxAddress" },
+        "To": { "value": "inputs|parameters|emailMessage/To" },
+        "CC": { "value": "inputs|parameters|emailMessage/Cc" },
+        "BCC": { "value": "inputs|parameters|emailMessage/Bcc" },
+        "Subject": { "value": "inputs|parameters|emailMessage/Subject" },
+        "Body": { "value": "inputs|parameters|emailMessage/Body" },
+        "Importance": { "value": "inputs|parameters|emailMessage/Importance" }
+      }
+    },
+    "When a new email arrives": {
+      "type": "OpenApiConnectionNotification",
+      "visioShape": "Outlook",
+      "connectionName": "shared_office365",
+      "operationId": "OnNewEmailV3",
+      "display": {
+        "Folder": { "value": "inputs|parameters|folderPath" },
+        "To": { "value": "inputs|parameters|to" },
+        "From": { "value": "inputs|parameters|from" },
+        "Subject Filter": { "value": "inputs|parameters|subjectFilter" },
+        "Importance": { "value": "inputs|parameters|importance" },
+        "Only with Attachments": { "value": "inputs|parameters|fetchOnlyWithAttachment" },
+        "Include Attachments": { "value": "inputs|parameters|includeAttachments" }
+      }
+    },
+    "Create file (file system)": {
+      "type": "OpenApiConnection",
+      "visioShape": "Default",
+      "connectionName": "shared_filesystem",
+      "operationId": "CreateFile",
+      "display": {
+        "Folder": { "value": "inputs|parameters|folderPath" },
+        "File Name": { "value": "inputs|parameters|name" },
+        "Content": { "value": "inputs|parameters|body" }
       }
     }
   }

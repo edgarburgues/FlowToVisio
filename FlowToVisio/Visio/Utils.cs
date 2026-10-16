@@ -75,10 +75,20 @@ namespace LinkeD365.FlowToVisio
 
         private static JObject _actionTemplate;
 
+        /// <summary>
+        /// Contents of actions.json supplied by the host (the command line tool). When set, nothing is downloaded.
+        /// </summary>
+        public static string ActionTemplateJson { get; set; }
+
         private static JObject ActionTemplate
         {
             get
             {
+                if (_actionTemplate == null && ActionTemplateJson != null)
+                {
+                    _actionTemplate = JObject.Parse(ActionTemplateJson);
+                }
+
                 if (_actionTemplate == null)
                 {
 #if DEBUG
@@ -105,7 +115,23 @@ namespace LinkeD365.FlowToVisio
         internal static bool showTrackProps;
 
         private static List<JProperty> OpenApiTemplates => ActionTemplate["actions"].Children<JProperty>()
-                    .Where(prop => prop.Value["type"] != null && (prop.Value["type"].ToString() == "OpenApiConnection" || prop.Value["type"].ToString() == "OpenApiConnectionWebhook")).ToList();
+                    .Where(prop => prop.Value["type"] != null && IsOpenApi(prop.Value["type"].ToString())).ToList();
+
+        private static bool IsOpenApi(string type) => type == "OpenApiConnection" || type == "OpenApiConnectionWebhook" || type == "OpenApiConnectionNotification";
+
+        private static readonly string[] KnownTypes =
+        {
+            "InitializeVariable", "SetVariable", "Http", "Response", "Request", "If", "Switch", "Foreach", "Terminate", "ApiConnection",
+            "OpenApiConnection", "Scope", "Compose", "Table", "Query", "Join", "ParseJson", "Select", "Until", "OpenApiConnectionWebhook",
+            "Recurrence", "Changeset"
+        };
+
+        /// <summary>Action types are not case sensitive ("foreach" runs like "Foreach").</summary>
+        private static string ActionType(JProperty actionProperty)
+        {
+            var type = actionProperty.Value["type"].ToString();
+            return KnownTypes.FirstOrDefault(known => string.Equals(known, type, StringComparison.OrdinalIgnoreCase)) ?? type;
+        }
 
         private static List<JProperty> OtherTemplates => ActionTemplate["actions"].Children<JProperty>()
                     .Where(prop => prop.Value["type"] != null && prop.Value["type"].ToString() != "OpenApiConnection").ToList();
@@ -132,6 +158,41 @@ namespace LinkeD365.FlowToVisio
             // triggerProperty.Value["metadata"]["operationMetadataId"] if (flow.Comments.Contains(triggerShape.Property..))
         }
 
+        /// <summary>True when the action runs after another one of its level. Flows saved by the API or by
+        /// other tools leave "runAfter" out instead of writing an empty object.</summary>
+        public static bool HasRunAfter(JToken action) => action?["runAfter"] != null && action["runAfter"].HasValues;
+
+        public static bool RunsAfter(JToken action, string name) => HasRunAfter(action) && ((JProperty)action["runAfter"].First()).Name == name;
+
+        /// <summary>The actions inside a container (scope, loop, change set); none when it has no "actions".</summary>
+        public static IEnumerable<JProperty> ChildActions(JToken container) =>
+            (container?["actions"] as JObject)?.Properties() ?? Enumerable.Empty<JProperty>();
+
+        /// <summary>A condition as text: {"and": [{"equals": [a, b]}, ...]} -> "a equals b and ...". Strings
+        /// (expressions written in advanced mode) are returned as they are.</summary>
+        public static string FormatExpression(JToken expression)
+        {
+            if (expression == null) return string.Empty;
+            if (expression.Type != JTokenType.Object) return expression.ToString();
+            var op = ((JObject)expression).Properties().FirstOrDefault();
+            if (op == null) return string.Empty;
+            var args = op.Value is JArray array ? array.ToList() : new List<JToken> { op.Value };
+            switch (op.Name)
+            {
+                case "and":
+                case "or":
+                    return string.Join(" " + op.Name + " ", args.Select(a => args.Count > 1 && a.Type == JTokenType.Object && ((JObject)a).Properties().Any(p => p.Name == "and" || p.Name == "or")
+                        ? "(" + FormatExpression(a) + ")" : FormatExpression(a)));
+
+                case "not":
+                    return "not (" + FormatExpression(args.FirstOrDefault()) + ")";
+
+                default:
+                    var operands = args.Select(a => a.Type == JTokenType.Object ? FormatExpression(a) : a.Type == JTokenType.String ? a.ToString() : a.ToString(Newtonsoft.Json.Formatting.None)).ToList();
+                    return operands.Count == 2 ? operands[0] + " " + op.Name + " " + operands[1] : op.Name + "(" + string.Join(", ", operands) + ")";
+            }
+        }
+
         public static void AddActions(IEnumerable<JProperty> childActions, Action parent)
         {
             int childCount = childActions.Count();
@@ -140,7 +201,7 @@ namespace LinkeD365.FlowToVisio
             {
                 var childAction = AddAction(actionProperty, parent, ++curCount, childCount);
                 AddComment(childAction);
-                AddActions(Root["properties"]["definition"]["actions"].Children<JProperty>().Where(a => a.Value["runAfter"].HasValues && ((JProperty)a.Value["runAfter"].First()).Name == childAction.Name), childAction);
+                AddActions(Root["properties"]["definition"]["actions"].Children<JProperty>().Where(a => Utils.RunsAfter(a.Value, childAction.Name)), childAction);
             }
         }
 
@@ -160,7 +221,7 @@ namespace LinkeD365.FlowToVisio
                         return templateAction;
                     }
 
-                    switch (actionProperty.Value["type"].ToString())
+                    switch (ActionType(actionProperty))
                     {
                         case "InitializeVariable":
                             return new InitVariable(actionProperty, parent, curCount, childCount);
@@ -235,7 +296,12 @@ namespace LinkeD365.FlowToVisio
             }
             catch (Exception exc)
             {
+#if CLI
+                Ai.WriteEvent("Error in Action " + actionProperty.Value["type"] + " " + actionProperty.Name + ": " + exc.Message);
+                if (Environment.GetEnvironmentVariable("FLOWTOVISIO_DEBUG") != null) Console.Error.WriteLine(exc);
+#else
                 Ai.WriteEvent("Error in Action " + actionProperty.Value["type"]);
+#endif
                 return new Action(actionProperty, parent, curCount, childCount);
                 //throw;
             }
@@ -248,7 +314,9 @@ namespace LinkeD365.FlowToVisio
                 switch (Connection.APIConnections.First(con => con.Name == actionProperty.Value["inputs"]["host"]["connectionName"].ToString()).Api)
                 {
                     case "shared_commondataserviceforapps":
-                        return new CDSTriggerAction(actionProperty, parent, curCount, childCount);
+                        if (actionProperty.Value["inputs"]?["parameters"]?["subscriptionRequest/message"] != null)
+                            return new CDSTriggerAction(actionProperty, parent, curCount, childCount);
+                        break;
                 }
                 Ai.WriteEvent("No Webhook: " + Connection.APIConnections.First(con => con.Name == actionProperty.Value["inputs"]["host"]["connectionName"].ToString()).Api);
             }
@@ -329,7 +397,7 @@ namespace LinkeD365.FlowToVisio
             else if (actionProperty.Value["type"].ToString() == "OpenApiConnection")
             {
                 var connectName = actionProperty.Value["inputs"]["host"]["connectionName"].ToString();
-                switch (Connection.APIConnections.First(con => con.Name == connectName).Name)
+                switch (Connection.APIConnections.First(con => con.Name == connectName).Api)
                 {
                     case "shared_excelonlinebusiness":
                         return new ExcelAction(actionProperty, parent, curCount, childCount);
@@ -356,7 +424,7 @@ namespace LinkeD365.FlowToVisio
 
         private static Action CreateTemplateAction(JProperty actionProperty, Action parent, int curCount, int childCount)
         {
-            if (actionProperty.Value["type"].ToString() == "OpenApiConnection" || actionProperty.Value["type"].ToString() == "OpenApiConnectionWebhook")
+            if (IsOpenApi(actionProperty.Value["type"].ToString()))
             {
                 var template = OpenApiTemplates.FirstOrDefault(templateDef =>
                     templateDef.Value["connectionName"].ToString() ==
